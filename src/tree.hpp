@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <memory>
+#include "nonfunc/tree_2_3.hpp"
 
 namespace fondue {
 	template <
@@ -11,7 +12,8 @@ namespace fondue {
 	> class tree;
 }
 
-template <class T, class Allocator> class fondue::tree {
+template <class T, class Allocator> class fondue::finger_tree::tree {
+	typedef fondue::nonfunc::tree_2_3<T, Allocator> tree_2_3;
 	
 }
 
