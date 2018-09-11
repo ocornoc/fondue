@@ -5,7 +5,7 @@
 #include <memory>
 #include "nonfunc/tree_2_3.hpp"
 
-namespace fondue {
+namespace fondue::finger_tree {
 	template <
 		class T,
 		class Allocator = std::allocator<T>
