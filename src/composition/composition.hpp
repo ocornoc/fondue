@@ -29,7 +29,6 @@ class fondue::composition<R(R)> {
 		// Composes *this ∘ c
 		[[nodiscard]]
 		composition<R(R)> operator*(const composition<R(R)> &c) const;
-		// Warning still applies to this, too.
 		// Composes *this ∘ f
 		[[nodiscard]]
 		composition<R(R)> operator*(const std::function<R(R)> &f) const;
