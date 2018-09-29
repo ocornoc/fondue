@@ -23,12 +23,15 @@ class fondue::composition<R(R)> {
 		inline std::shared_future<R> make_ready_at_thread_exit(R arg);
 		
 		// Returns the shared future of the composition
+		[[nodiscard, gnu::pure]]
 		inline std::shared_future<R> get_future() const noexcept;
 		
 		// Composes *this ∘ c
+		[[nodiscard]]
 		composition<R(R)> operator*(const composition<R(R)> &c) const;
 		// Warning still applies to this, too.
 		// Composes *this ∘ f
+		[[nodiscard]]
 		composition<R(R)> operator*(const std::function<R(R)> &f) const;
 		
 		// Returns whether ptask is valid && whether func is valid
