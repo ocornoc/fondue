@@ -1,6 +1,7 @@
 CPPC = g++
+CPPVERSION = -std=c++1z
 CPPWARNINGS = -Wall -Wextra -Wpedantic -Wfatal-errors -Wvla -Wlogical-op -pedantic-errors
-CPPFLAGS_NORMAL = -O2 -pthread $(CPPWARNINGS)
+CPPFLAGS_NORMAL = -O2 -pthread $(CPPWARNINGS) $(CPPVERSION)
 CPPFLAGS_DEBUG = -g $(CPPFLAGS_NORMAL)
 
 src = src
