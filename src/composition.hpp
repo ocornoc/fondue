@@ -34,7 +34,7 @@ class fondue::composition<R(Arg_T)> {
 		inline std::shared_future<R> make_ready_at_thread_exit(Arg_T arg);
 		
 		// Returns the shared future of the composition
-		[[nodiscard, gnu::pure]]
+		[[nodiscard]]
 		inline std::shared_future<R> get_future() const noexcept;
 		
 		// Composes *this ∘ c
