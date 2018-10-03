@@ -8,6 +8,8 @@ typedef std::uint32_t firstf_ret_t;
 typedef std::uint64_t secondf_arg_t;
 typedef bool          secondf_ret_t;
 
+static constexpr secondf_arg_t boundary_point;
+
 firstf_ret_t func1(firstf_arg_t n)
 {
 	if (n < 0) {
@@ -19,7 +21,7 @@ firstf_ret_t func1(firstf_arg_t n)
 
 secondf_ret_t func2(secondf_arg_t n)
 {
-	return n > 10000;
+	return n > boundary_point;
 }
 
 secondf_ret_t test_composition(firstf_arg_t n)
@@ -35,31 +37,29 @@ secondf_ret_t test_composition(firstf_arg_t n)
 
 int main()
 {
-	for (int i = 9990; i <= 10000; i++) {
+	for (int i = boundary_point - 10; i <= boundary_point; i++) {
 		if (test_composition(i)) {
 			return 1;
 		}
 	}
 	
-	for (int i = 10010; i > 10000; i--) {
+	for (int i = boundary_point + 10; i > boundary_point; i--) {
 		if (not test_composition(i)) {
 			return 1;
 		}
 	}
 	
-	for (int i = -9990; i >= -10000; i--) {
+	for (int i = -boundary_point + 10; i >= -boundary_point; i--) {
 		if (test_composition(i)) {
 			return 1;
 		}
 	}
 	
-	for (int i = -10010; i < -10000; i++) {
+	for (int i = -boundary_point - 10; i < -boundary_point; i++) {
 		if (not test_composition(i)) {
 			return 1;
 		}
 	}
 	
 	return 0;
-	
-	test_composition(1);
 }
