@@ -5,9 +5,9 @@
 using fondue::composition;
 
 typedef std::int64_t  firstf_arg_t;
-typedef std::uint64_t firstf_ret_t;
+typedef std::uint32_t firstf_ret_t;
 
-typedef std::int64_t secondf_arg_t;
+typedef std::uint64_t secondf_arg_t;
 typedef bool          secondf_ret_t;
 
 firstf_ret_t func1(firstf_arg_t n)
@@ -21,7 +21,7 @@ firstf_ret_t func1(firstf_arg_t n)
 
 secondf_ret_t func2(secondf_arg_t n)
 {
-	return n > std::numeric_limits<firstf_ret_t>::max();
+	return n > std::numeric_limits<secondf_arg_t>::max();
 }
 
 static composition<firstf_ret_t(firstf_arg_t)> comp1(func1);
@@ -29,7 +29,7 @@ static composition<secondf_ret_t(secondf_arg_t)> comp2(func2);
 static composition<secondf_ret_t(firstf_arg_t)> comp(comp2 * comp1);
 
 
-void test_composition(volatile firstf_arg_t n)
+void test_composition(firstf_arg_t n)
 {
 //	composition<firstf_ret_t(firstf_arg_t)> comp1(func1);
 //	composition<secondf_ret_t(secondf_arg_t)> comp2(func2);
