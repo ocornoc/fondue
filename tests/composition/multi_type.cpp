@@ -21,7 +21,7 @@ firstf_ret_t func1(firstf_arg_t n)
 
 secondf_ret_t func2(secondf_arg_t n)
 {
-	return n > std::numeric_limits<secondf_arg_t>::max();
+	return n > 10000;
 }
 
 static composition<firstf_ret_t(firstf_arg_t)> comp1(func1);
@@ -31,13 +31,9 @@ static composition<secondf_ret_t(firstf_arg_t)> comp(comp2 * comp1);
 
 void test_composition(firstf_arg_t n)
 {
-//	composition<firstf_ret_t(firstf_arg_t)> comp1(func1);
-//	composition<secondf_ret_t(secondf_arg_t)> comp2(func2);
-//	composition<secondf_ret_t(firstf_arg_t)> comp(comp2 * comp1);
-	
 	std::cout << "original: " << n << std::endl;
 	std::cout << "comp1(n): " << comp1(n).get() << std::endl;
-	std::cout << "comp(n):  " << comp(n).get() << std::endl;
+	std::cout << "comp(n):  " << (comp(n).get() ? "true" : "false") << std::endl;
 	
 	std::cout << std::endl;
 }
