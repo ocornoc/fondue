@@ -8,7 +8,7 @@ typedef std::uint32_t firstf_ret_t;
 typedef std::uint64_t secondf_arg_t;
 typedef bool          secondf_ret_t;
 
-static constexpr secondf_arg_t boundary_point;
+static constexpr std::int64_t boundary_point = 10000;
 
 firstf_ret_t func1(firstf_arg_t n)
 {
