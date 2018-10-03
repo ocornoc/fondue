@@ -55,4 +55,4 @@ language: cpp
 
 before_script: cd tests
 
-script: test.sh
+script: make
