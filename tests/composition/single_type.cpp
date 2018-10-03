@@ -1,7 +1,6 @@
 #include "../../src/composition.hpp"
-using fondue::composition;
-
 typedef signed long long ret_t;
+typedef fondue::composition<ret_t(ret_t)> composition;
 
 ret_t func1(ret_t n)
 {
@@ -21,9 +20,9 @@ ret_t func3(ret_t n)
 
 bool test_composition(ret_t n)
 {
-	composition<ret_t(ret_t)> comp1(func1);
-	composition<ret_t(ret_t)> comp2(func2);
-	composition<ret_t(ret_t)> comp3(func3);
+	composition comp1(func1);
+	composition comp2(func2);
+	composition comp3(func3);
 	
 	return (comp3 * (comp1 * comp2))(n).get() == n;
 }
