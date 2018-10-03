@@ -24,6 +24,9 @@ class fondue::composition<R(Arg_T)> {
 	std::packaged_task<R(Arg_T)> ptask;
 	std::shared_future<R> sharedf;
 	
+	template <class other_R, class other_Arg_T>
+	friend class fondue::composition;
+	
 	public:
 		// Executes the composition
 		inline std::shared_future<R> operator()(Arg_T arg);
