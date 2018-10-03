@@ -1,30 +1,33 @@
-CPPC = g++
-CPPVERSION = -std=c++17
-CPPWARNINGS = -Wall -Wextra -Wpedantic -Wfatal-errors -Wvla -Wlogical-op -pedantic-errors
-CPPFLAGS_NORMAL = -O2 -pthread $(CPPWARNINGS) $(CPPVERSION)
-CPPFLAGS_DEBUG = -g $(CPPFLAGS_NORMAL)
+CXXVERSION = -std=c++14
+CXXWARNINGS = -Wall -Wextra -Wpedantic -Wfatal-errors -Wvla -Wlogical-op -pedantic-errors
+CXXFLAGS_NORMAL = -O2 -pthread $(CXXWARNINGS) $(CXXVERSION)
+CXXFLAGS_DEBUG = -g $(CXXFLAGS_NORMAL)
 
 src = ../../src
 build = build
 
-CPP_COMPILATION_OBJECTS = single_type.cpp multi_type.cpp
+CXX_COMPILATION_OBJECTS = single_type.cpp multi_type.cpp
+CXX_EXECUTABLE = $(build)/$(basename $(notdir $@))
+CXX_ALL_EXECUTABLES = $(foreach exe,$(CXX_COMPILATION_OBJECTS),$(build)/$(basename $(notdir $(exe))))
 
-CPP_EXECUTABLE = $(build)/$(basename $(notdir $@))
 
 
-
-compile: $(CPP_COMPILATION_OBJECTS)
+compile: $(CXX_COMPILATION_OBJECTS)
 	
-
-$(CPP_COMPILATION_OBJECTS): build_folder clean
-	$(CPPC) $(CPPFLAGS_DEBUG) -o $(CPP_EXECUTABLE) $@
-
+test: $(CXX_ALL_EXECUTABLES)
+	
 clean:
 	rm -rf $(build)
+
+
+
+$(CXX_COMPILATION_OBJECTS): build_folder clean
+	$(CXX) $(CXXFLAGS_NORMAL) -o $(CXX_EXECUTABLE) $@
 
 build_folder: clean
 	mkdir -p $(build)
 
+$(CXX_ALL_EXECUTABLES):
+	./$@
 
-
-.PHONY: $(CPP_COMPILATION_OBJECTS) clean builder_folder compile
+.PHONY: clean build_folder compile test $(CXX_ALL_EXECUTABLES)
