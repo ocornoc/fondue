@@ -22,7 +22,7 @@ template <class R, class Arg_T>
 class fondue::composition<R(Arg_T)> {
 	std::function<R(Arg_T)> func;
 	std::packaged_task<R(Arg_T)> ptask;
-	std::shared_future<R> ptsharedf;
+	std::shared_future<R> sharedf;
 	
 	public:
 		// Executes the composition
@@ -65,7 +65,7 @@ constexpr fondue::composition<R(Arg_T)>& fondue::composition<R(Arg_T)>::operator
 {
 	func = std::move(c.func);
 	ptask = std::move(c.ptask);
-	ptsharedf = std::move(c.ptsharedf);
+	sharedf = std::move(c.ptsharedf);
 	
 	return *this;
 }
@@ -89,7 +89,7 @@ inline std::shared_future<R> fondue::composition<R(Arg_T)>::make_ready_at_thread
 template <class R, class Arg_T>
 inline std::shared_future<R> fondue::composition<R(Arg_T)>::get_future() const noexcept
 {
-	return ptsharedf;
+	return sharedf;
 }
 
 template <class R, class Arg_T>
@@ -148,7 +148,7 @@ template <class R, class Arg_T>
 constexpr fondue::composition<R(Arg_T)>::composition(std::function<R(Arg_T)> &&f) noexcept
 	: func(f), ptask(std::move(std::packaged_task<R(Arg_T)>(std::move(f)))) 
 {
-	ptsharedf = ptask.get_future().share();
+	sharedf = ptask.get_future().share();
 }
 
 template <class R, class Arg_T>
@@ -157,7 +157,7 @@ constexpr fondue::composition<R(Arg_T)>::composition(const fondue::composition<R
 {
 	std::function<R(Arg_T)> tempcopy = func;
 	ptask = std::move(std::packaged_task<R(Arg_T)>(std::move(tempcopy)));
-	ptsharedf = ptask.get_future().share();
+	sharedf = ptask.get_future().share();
 }
 
 #endif
