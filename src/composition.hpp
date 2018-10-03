@@ -151,7 +151,7 @@ template <class R, class Arg_T>
 constexpr fondue::composition<R(Arg_T)>::composition(std::function<R(Arg_T)> &&f) noexcept
 	: func(f), ptask(std::move(std::packaged_task<R(Arg_T)>(std::move(f)))) 
 {
-	sharedf = ptask.get_future().share();
+	sharedf = std::move(ptask.get_future().share());
 }
 
 template <class R, class Arg_T>
@@ -160,7 +160,7 @@ constexpr fondue::composition<R(Arg_T)>::composition(const fondue::composition<R
 {
 	std::function<R(Arg_T)> tempcopy = func;
 	ptask = std::move(std::packaged_task<R(Arg_T)>(std::move(tempcopy)));
-	sharedf = ptask.get_future().share();
+	sharedf = std::move(ptask.get_future().share());
 }
 
 #endif
