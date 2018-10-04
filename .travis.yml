@@ -19,4 +19,4 @@ install: true
 
 language: cpp
 
-script: make -v -C tests
+script: make -C tests
