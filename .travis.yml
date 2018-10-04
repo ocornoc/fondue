@@ -20,6 +20,4 @@ install: true
 
 language: cpp
 
-before_script: cd tests
-
-script: make
+script: make -C tests
