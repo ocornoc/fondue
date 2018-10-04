@@ -5,7 +5,7 @@ CXXWARNINGS = -Wall -Wextra -Wpedantic -Wfatal-errors -Wvla -Wlogical-op -pedant
 # The flags we should pass to our compiler.
 CXXFLAGS_NORMAL = -O2 -pthread $(CXXWARNINGS) $(CXXVERSION)
 # The flags we should pass to our compiler when debugging.
-CXXFLAGS_DEBUG = -g $(CXXFLAGS_NORMAL)
+CXXFLAGS_DEBUG = -g -O0 -pthread $(CXXWARNINGS) $(CXXVERSION)
 
 # Relative path to the source directory of fondue.
 src = ../../src
