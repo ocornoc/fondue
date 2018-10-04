@@ -1,3 +1,7 @@
+/*
+	This tests compositing functions/compositions with equal input/output types.
+*/
+
 #include "../../src/composition.hpp"
 typedef signed long long ret_t;
 typedef fondue::composition<ret_t(ret_t)> composition;

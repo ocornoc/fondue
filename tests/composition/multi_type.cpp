@@ -1,3 +1,7 @@
+/*
+	This tests compositing functions/compositions with input/output types.
+*/
+
 #include "../../src/composition.hpp"
 #include <cstdint>
 using fondue::composition;
