@@ -1,7 +1,7 @@
 #!/bin/make
 MY_DIR = $(abspath .)
-TEST_MKFL_DIRS := $(sort $(abspath $(dir $(wildcard $(MY_DIR)/*/Makefile))))
-TEST_MKFLS := $(foreach mkfl_dir,$(TEST_MKFL_DIRS),$(mkfl_dir)/Makefile)
+TEST_MKFL_DIRS = $(sort $(abspath $(dir $(wildcard $(MY_DIR)/*/Makefile))))
+TEST_MKFLS = $(foreach mkfl_dir,$(TEST_MKFL_DIRS),$(mkfl_dir)/Makefile)
 
 TEST_FUNCTIONS := $(foreach mkfl_dir,$(TEST_MKFL_DIRS),test_$(mkfl_dir))
 
