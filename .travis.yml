@@ -11,8 +11,7 @@ matrix:
       env:
          - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
-before_install:
-    - eval "${MATRIX_EVAL}"
+before_install: eval "${MATRIX_EVAL}"
 
 compiler: gcc
 
