@@ -8,6 +8,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-5
+            - make
       env:
          - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
@@ -19,4 +20,4 @@ install: true
 
 language: cpp
 
-script: make --eval="JOBS=2" -C tests
+script: make -v --eval="JOBS=2" -C tests
