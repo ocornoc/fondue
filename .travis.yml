@@ -20,4 +20,4 @@ install: true
 
 language: cpp
 
-script: make -v --eval="JOBS=2" -C tests
+script: make -v -C tests

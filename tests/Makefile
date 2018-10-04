@@ -8,9 +8,9 @@ MY_DIR = $(abspath .)
 TEST_MKFL_DIRS = $(sort $(abspath $(dir $(wildcard $(MY_DIR)/*/Makefile))))
 # The absolute paths to the makefiles in the direct subdirectories.
 TEST_MKFLS = $(foreach mkfl_dir,$(TEST_MKFL_DIRS),$(mkfl_dir)/Makefile)
-# If JOBS isn't defined, set it to 1.
+# If JOBS isn't defined, set it to 2.
 # This controls how many parallel tasks are ran for sub-makefiles.
-JOBS ?= 1
+JOBS ?= 2
 
 # Tests all of the direct subdirectories' makefiles and prints all of the tested ones.
 test: $(TEST_MKFL_DIRS)
