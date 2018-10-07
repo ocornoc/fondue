@@ -3,10 +3,10 @@
 
 // "if constexpr" support is detected via SD-6 Feature Test.
 
-#include <future>
 #include <functional>
 #include <utility>
 #include <type_traits>
+#include <unordered_map>
 
 namespace fondue {
 	// Ignore this one, this is just do we can use
@@ -14,46 +14,48 @@ namespace fondue {
 	template <class>
 	class composition;
 	
+	// R is the return class type.
+	// Arg_T is the argument class type.
 	template <class R, class Arg_T>
 	class composition<R(Arg_T)>;
 }
 
 template <class R, class Arg_T>
 class fondue::composition<R(Arg_T)> {
-	std::function<R(Arg_T)> func;
-	std::packaged_task<R(Arg_T)> ptask;
-	std::shared_future<R> sharedf;
+	using _function = std::function<R(Arg_T)>;
+	using _unmap = std::unordered_map<Arg_T, R>;
+	
+	// The internal function represented.
+	_function func;
+	// The memoization table.
+	_unmap memoization_state;
 	
 	template <class other_R, class other_Arg_T>
 	friend class fondue::composition;
 	
 	public:
 		// Executes the composition
-		inline std::shared_future<R> operator()(Arg_T arg);
-		// Executes the composition, only letting the future be ready at thread exit
-		inline std::shared_future<R> make_ready_at_thread_exit(Arg_T arg);
-		
-		// Returns the shared future of the composition
-		[[nodiscard, gnu::pure]]
-		inline std::shared_future<R> get_future() const noexcept;
+		[[gnu::pure]]
+		inline R& operator()(Arg_T &arg);
+		// Executes the composition with forwarding
+		[[gnu::pure]]
+		inline R& operator()(Arg_T &&arg);
 		
 		// Composes *this ∘ c
 		// other_R must be implicitly convertible to Arg_T
 		template <class other_R, class other_Arg_T>
 		[[nodiscard, gnu::pure]]
-		composition<R(other_Arg_T)> operator*(const composition<other_R(other_Arg_T)> &c) const;
-		// Composes *this ∘ f
-		// other_R must be implicitly convertible to Arg_T
+		composition<R(other_Arg_T)> operator*(composition<other_R(other_Arg_T)> &c);
 		template <class other_R, class other_Arg_T>
 		[[nodiscard, gnu::pure]]
-		composition<R(other_Arg_T)> operator*(const std::function<other_R(other_Arg_T)> &f) const;
+		composition<R(other_Arg_T)> operator*(composition<other_R(other_Arg_T)> &&c);
 		
 		// Returns whether ptask is valid && whether func is valid
 		inline bool valid() const noexcept;
 		
-		// Converts the composition into an std::function<R(Arg_T)>
+		// Converts the composition into a _function
 		[[gnu::pure]]
-		constexpr operator std::function<R(Arg_T)>() const noexcept;
+		constexpr operator _function() const noexcept;
 		
 		// Ctors and dtors
 		constexpr composition(std::function<R(Arg_T)> &&f) noexcept;
@@ -61,48 +63,65 @@ class fondue::composition<R(Arg_T)> {
 		constexpr composition(composition<R(Arg_T)> &&c) noexcept = default;
 		~composition() = default;
 		constexpr composition<R(Arg_T)>& operator=(composition<R(Arg_T)> &&c) noexcept;
+	
+	private:
+		// Returns whether arg is memoized in memo_state.
+		static inline bool is_memoized(Arg_T &&arg, _unmap &&memo_state);
 };
 
 template <class R, class Arg_T>
 constexpr fondue::composition<R(Arg_T)>& fondue::composition<R(Arg_T)>::operator=(fondue::composition<R(Arg_T)> &&c) noexcept
 {
 	func = std::move(c.func);
-	ptask = std::move(c.ptask);
-	sharedf = std::move(c.ptsharedf);
+	memoization_state = std::move(c.memoization_state);
 	
 	return *this;
 }
 
 template <class R, class Arg_T>
-inline std::shared_future<R> fondue::composition<R(Arg_T)>::operator()(Arg_T arg)
+inline bool fondue::composition<R(Arg_T)>::is_memoized(Arg_T &&arg, _unmap &&memo_state)
 {
-	ptask(arg);
-	
-	return get_future();
+	return memo_state.find(std::forward<Arg_T>(arg)) != memo_state.end();
 }
 
 template <class R, class Arg_T>
-inline std::shared_future<R> fondue::composition<R(Arg_T)>::make_ready_at_thread_exit(Arg_T arg)
+inline R& fondue::composition<R(Arg_T)>::operator()(Arg_T &arg)
 {
-	ptask.make_ready_at_thread_exit(arg);
+	// If arg isn't memoized:
+	if (not is_memoized(std::forward<Arg_T>(arg), std::forward<_unmap>(memoization_state))) {
+		// Call func with arg and memoize its value.
+		memoization_state.insert({std::forward<Arg_T>(arg), std::forward<R>(func(std::forward<Arg_T>(arg)))});
+	}
 	
-	return get_future();
+	// Return the memoized value.
+	// This will never throw, because we already prechecked if
+	// arg wasn't memoized.
+	return memoization_state.at(std::forward<Arg_T>(arg));
 }
 
 template <class R, class Arg_T>
-inline std::shared_future<R> fondue::composition<R(Arg_T)>::get_future() const noexcept
+inline R& fondue::composition<R(Arg_T)>::operator()(Arg_T &&arg)
 {
-	return sharedf;
+	// If arg isn't memoized:
+	if (not is_memoized(std::forward<Arg_T>(arg), std::forward<_unmap>(memoization_state))) {
+		// Call func with arg and memoize its value.
+		memoization_state.insert({std::forward<Arg_T>(arg), std::forward<R>(func(std::forward<Arg_T>(arg)))});
+	}
+	
+	// Return the memoized value.
+	// This will never throw, because we already prechecked if
+	// arg wasn't memoized.
+	return memoization_state.at(std::forward<Arg_T>(arg));
 }
 
 template <class R, class Arg_T>
 inline bool fondue::composition<R(Arg_T)>::valid() const noexcept
 {
-	return ptask.valid() and bool(func);
+	return bool(func);
 }
 
 template <class R, class Arg_T> template <class other_R, class other_Arg_T>
-fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(const fondue::composition<other_R(other_Arg_T)> &c) const
+fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fondue::composition<other_R(other_Arg_T)> &c)
 {
 // If "if constexpr" is supported (SD-6 feature test)
 #if __cpp_if_constexpr >= 201606
@@ -111,10 +130,8 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(con
 #else
 	if (std::is_convertible<other_R, Arg_T>::value) {
 #endif
-		std::function<R(Arg_T)> oldf_me = func;
-		std::function<other_R(other_Arg_T)> oldf_c = c.func;
-		std::function<R(other_Arg_T)> newf = [oldf_me, oldf_c](other_Arg_T arg) -> R {
-			return oldf_me(oldf_c(arg));
+		std::function<R(other_Arg_T)> newf = [this, &c](other_Arg_T arg) -> R& {
+			return (*this)(c(arg));
 		};
 		
 		return composition<R(other_Arg_T)>(std::move(newf));
@@ -122,7 +139,7 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(con
 }
 
 template <class R, class Arg_T> template <class other_R, class other_Arg_T>
-fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(const std::function<other_R(other_Arg_T)> &f) const
+fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fondue::composition<other_R(other_Arg_T)> &&c)
 {
 // If "if constexpr" is supported (SD-6 feature test)
 #if __cpp_if_constexpr >= 201606
@@ -131,10 +148,8 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(con
 #else
 	if (std::is_convertible<other_R, Arg_T>::value) {
 #endif
-		std::function<R(Arg_T)> oldf_me = func;
-		std::function<other_R(other_Arg_T)> oldf = f;
-		std::function<R(other_Arg_T)> newf = [oldf_me, oldf](other_Arg_T arg) -> R {
-			return oldf_me(oldf(arg));
+		std::function<R(other_Arg_T)> newf = [this, &c](other_Arg_T arg) -> R& {
+			return (*this)(c(arg));
 		};
 		
 		return composition<R(other_Arg_T)>(std::move(newf));
@@ -148,19 +163,11 @@ constexpr fondue::composition<R(Arg_T)>::operator std::function<R(Arg_T)>() cons
 }
 
 template <class R, class Arg_T>
-constexpr fondue::composition<R(Arg_T)>::composition(std::function<R(Arg_T)> &&f) noexcept
-	: func(f), ptask(std::move(std::packaged_task<R(Arg_T)>(std::move(f)))) 
-{
-	sharedf = std::move(ptask.get_future().share());
-}
+constexpr fondue::composition<R(Arg_T)>::composition(_function &&f) noexcept
+	: func(f) {}
 
 template <class R, class Arg_T>
 constexpr fondue::composition<R(Arg_T)>::composition(const fondue::composition<R(Arg_T)> &c) noexcept
-	: func(c.func)
-{
-	std::function<R(Arg_T)> tempcopy = func;
-	ptask = std::move(std::packaged_task<R(Arg_T)>(std::move(tempcopy)));
-	sharedf = std::move(ptask.get_future().share());
-}
+	: func(c.func), memoization_state(c.memoization_state) {}
 
 #endif

@@ -28,7 +28,9 @@ bool test_composition(ret_t n)
 	composition comp2(func2);
 	composition comp3(func3);
 	
-	return (comp3 * (comp1 * comp2))(n).get() == n;
+	//auto tempcomp = comp1 * comp2;
+	//return (comp3 * tempcomp)(n) == n;
+	return (comp3 * (comp1 * comp2))(n) == n;
 }
 
 int main()

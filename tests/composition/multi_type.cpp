@@ -36,11 +36,9 @@ secondf_ret_t test_composition(firstf_arg_t n)
 	
 	composition<firstf_ret_t(firstf_arg_t)> comp1(func1);
 	composition<secondf_ret_t(secondf_arg_t)> comp2(func2);
-	volatile composition<secondf_ret_t(firstf_arg_t)> comp(comp2 * comp1);
+	composition<secondf_ret_t(firstf_arg_t)> comp(comp2 * comp1);
 	
-	volatile secondf_ret_t ret = comp(n).get();
-	
-	return ret;
+	return comp(n);
 }
 
 int main()
