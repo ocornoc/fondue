@@ -1,5 +1,5 @@
-#ifndef _FONDUE_COMPOSITION_COMPOSITION_HPP
-#define _FONDUE_COMPOSITION_COMPOSITION_HPP
+#ifndef _FONDUE_COMPOSITION_HPP
+#define _FONDUE_COMPOSITION_HPP
 
 // "if constexpr" support is detected via SD-6 Feature Test.
 
