@@ -13,7 +13,7 @@ src = ../../src
 build = build
 
 # Our source files we're compiling.
-CXX_COMPILATION_OBJECTS = single_type.cpp multi_type.cpp
+CXX_COMPILATION_OBJECTS = single_type.cpp multi_type.cpp static_comp.cpp 
 # A variable which will store the name of the associated executable given a compilation object.
 CXX_EXECUTABLE = $(build)/$(basename $(notdir $@))
 # The path of each executable we will compile.
