@@ -3,9 +3,9 @@ CXXVERSION = -std=c++14
 # All of the things we should make our compiler scream in agony for.
 CXXWARNINGS = -Wall -Wextra -Wpedantic -Wfatal-errors -Wvla -Wlogical-op -pedantic-errors
 # The flags we should pass to our compiler.
-CXXFLAGS_NORMAL = -O2 -pthread $(CXXWARNINGS) $(CXXVERSION)
+CXXFLAGS_NORMAL = -O2 $(CXXWARNINGS) $(CXXVERSION)
 # The flags we should pass to our compiler when debugging.
-CXXFLAGS_DEBUG = -g $(CXXFLAGS_NORMAL)
+CXXFLAGS_DEBUG = -g -O0 $(CXXWARNINGS) $(CXXVERSION)
 
 # Relative path to the source directory of fondue.
 src = ../../src
@@ -13,7 +13,7 @@ src = ../../src
 build = build
 
 # Our source files we're compiling.
-CXX_COMPILATION_OBJECTS = single_type.cpp multi_type.cpp
+CXX_COMPILATION_OBJECTS = single_type.cpp multi_type.cpp static_comp.cpp 
 # A variable which will store the name of the associated executable given a compilation object.
 CXX_EXECUTABLE = $(build)/$(basename $(notdir $@))
 # The path of each executable we will compile.
