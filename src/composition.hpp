@@ -58,7 +58,7 @@ class fondue::composition<R(Arg_T)> {
 		constexpr operator _function() const noexcept;
 		
 		// Ctors and dtors
-		constexpr composition(std::function<R(Arg_T)> &&f) noexcept;
+		constexpr composition(_function &&f) noexcept;
 		constexpr composition(const composition<R(Arg_T)> &c) noexcept;
 		constexpr composition(composition<R(Arg_T)> &&c) noexcept = default;
 		~composition() = default;
@@ -156,14 +156,50 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fon
 	}
 }
 
+template <class R, class Arg_T> template <class other_R>
+fondue::composition<R> fondue::composition<R(Arg_T)>::operator*(fondue::composition<other_R> &c)
+{
+// If "if constexpr" is supported (SD-6 feature test)
+#if __cpp_if_constexpr >= 201606
+	if constexpr (std::is_convertible<other_R, Arg_T>::value) {
+// Otherwise:
+#else
+	if (std::is_convertible<other_R, Arg_T>::value) {
+#endif
+		std::function<R()> newf = [this, c = std::move(c)]() mutable -> R& {
+			return (*this)(c());
+		};
+		
+		return composition<R>(std::move(newf));
+	}
+}
+
+template <class R, class Arg_T> template <class other_R>
+fondue::composition<R> fondue::composition<R(Arg_T)>::operator*(fondue::composition<other_R> &&c)
+{
+// If "if constexpr" is supported (SD-6 feature test)
+#if __cpp_if_constexpr >= 201606
+	if constexpr (std::is_convertible<other_R, Arg_T>::value) {
+// Otherwise:
+#else
+	if (std::is_convertible<other_R, Arg_T>::value) {
+#endif
+		std::function<R()> newf = [this, c = std::move(c)]() mutable -> R& {
+			return (*this)(c());
+		};
+		
+		return composition<R>(std::move(newf));
+	}
+}
+
 template <class R, class Arg_T>
-constexpr fondue::composition<R(Arg_T)>::operator std::function<R(Arg_T)>() const noexcept
+constexpr fondue::composition<R(Arg_T)>::operator fondue::composition<R(Arg_T)>::_function() const noexcept
 {
 	return func;
 }
 
 template <class R, class Arg_T>
-constexpr fondue::composition<R(Arg_T)>::composition(_function &&f) noexcept
+constexpr fondue::composition<R(Arg_T)>::composition(fondue::composition<R(Arg_T)>::_function &&f) noexcept
 	: func(f) {}
 
 template <class R, class Arg_T>
