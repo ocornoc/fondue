@@ -130,9 +130,9 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fon
 #else
 	if (std::is_convertible<other_R, Arg_T>::value) {
 #endif
-		std::function<R(other_Arg_T)> newf = [this, &c](other_Arg_T arg) -> R& {
+		std::function<R(other_Arg_T)> newf([this, c = std::move(c)](other_Arg_T arg) mutable -> R& {
 			return (*this)(c(arg));
-		};
+		});
 		
 		return composition<R(other_Arg_T)>(std::move(newf));
 	}
@@ -148,7 +148,7 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fon
 #else
 	if (std::is_convertible<other_R, Arg_T>::value) {
 #endif
-		std::function<R(other_Arg_T)> newf = [this, &c](other_Arg_T arg) -> R& {
+		std::function<R(other_Arg_T)> newf = [this, c = std::move(c)](other_Arg_T arg) mutable -> R& {
 			return (*this)(c(arg));
 		};
 		
