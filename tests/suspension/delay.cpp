@@ -1,4 +1,4 @@
-// This tests suspension delays.
+// This tests suspension delays and suspension forcing.
 
 #include "../../src/composition.hpp"
 #include "../../src/suspension.hpp"
