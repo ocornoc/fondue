@@ -48,6 +48,7 @@ class fondue::composition {
 		// Converts the composition into a _function
 		[[gnu::pure]]
 		constexpr operator _function() const noexcept;
+
 		// Converts the composition into a composition with an input.
 		template <class Arg_T>
 		[[gnu::pure]]
@@ -96,12 +97,15 @@ class fondue::composition<R(Arg_T)> {
 		template <class other_R, class other_Arg_T>
 		[[nodiscard, gnu::pure]]
 		composition<R(other_Arg_T)> operator*(composition<other_R(other_Arg_T)> &c);
+		
 		template <class other_R, class other_Arg_T>
 		[[nodiscard, gnu::pure]]
 		composition<R(other_Arg_T)> operator*(composition<other_R(other_Arg_T)> &&c);
+		
 		template <class other_R>
 		[[nodiscard, gnu::pure]]
 		composition<R> operator*(composition<other_R> &c);
+		
 		template <class other_R>
 		[[nodiscard, gnu::pure]]
 		composition<R> operator*(composition<other_R> &&c);
