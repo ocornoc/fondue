@@ -1,6 +1,8 @@
 #ifndef _FONDUE_COMPOSITION_HPP
 #define _FONDUE_COMPOSITION_HPP
 
+// More documentation can be found in README.md
+
 // "if constexpr" support is detected via SD-6 Feature Test.
 
 #include <functional>

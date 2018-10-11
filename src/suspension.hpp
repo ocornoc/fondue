@@ -5,6 +5,8 @@
 #include <functional>
 #include "composition.hpp"
 
+// More documentation can be found in README.md
+
 namespace fondue {
 	namespace suspension {
 		// This function takes an already-existing object and returns a
