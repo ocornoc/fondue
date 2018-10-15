@@ -18,7 +18,7 @@ namespace fondue {
 	template <class R>
 	class composition;
 	
-	// R is the return class type.
+	// R is the return class type. Cannot be void.
 	// Arg_T is the argument class type.
 	template <class R, class Arg_T>
 	class composition<R(Arg_T)>;
@@ -27,14 +27,15 @@ namespace fondue {
 
 template <class R>
 class fondue::composition {
+	typedef typename std::remove_reference<R>::type noref_R;
 	using _function = std::function<R()>;
 	// 'false' is always used when hashing.
-	using _unmap = std::unordered_map<bool, R>;
+	using _unmap = std::unordered_map<bool, noref_R>;
 	
 	// The internal function represented.
 	_function func;
 	// The memoization table.
-	_unmap memoization_state;
+	mutable _unmap memoization_state;
 	
 	template <class other_R, class other_Arg_T>
 	friend class fondue::composition;
@@ -42,7 +43,7 @@ class fondue::composition {
 	public:
 		// Executes the composition
 		[[gnu::pure]]
-		inline R& operator()();
+		inline noref_R&& operator()() const;
 		
 		// Returns whether ptask is valid && whether func is valid
 		inline bool valid() const noexcept;
@@ -67,18 +68,20 @@ class fondue::composition {
 		// Returns whether arg is memoized in memo_state.
 		// In this context, it basically means "has func been
 		// called before".
-		static inline bool is_memoized(_unmap &&memo_state);
+		static inline bool is_memoized(const _unmap &&memo_state);
 };
 
 template <class R, class Arg_T>
 class fondue::composition<R(Arg_T)> {
+	typedef typename std::remove_reference<R>::type noref_R;
+	typedef typename std::remove_reference<Arg_T>::type noref_Arg_T;
 	using _function = std::function<R(Arg_T)>;
-	using _unmap = std::unordered_map<Arg_T, R>;
+	using _unmap = std::unordered_map<noref_Arg_T, noref_R>;
 	
 	// The internal function represented.
 	_function func;
 	// The memoization table.
-	_unmap memoization_state;
+	mutable _unmap memoization_state;
 	
 	template <class other_R>
 	friend class fondue::composition;
@@ -89,16 +92,17 @@ class fondue::composition<R(Arg_T)> {
 	public:
 		// Executes the composition
 		[[gnu::pure]]
-		inline R& operator()(Arg_T &arg);
+		inline noref_R&& operator()(noref_Arg_T &arg) const;
+	
 		// Executes the composition with forwarding
 		[[gnu::pure]]
-		inline R& operator()(Arg_T &&arg);
+		inline noref_R&& operator()(noref_Arg_T &&arg) const;
 		
 		// Composes *this ∘ c
 		// other_R must be implicitly convertible to Arg_T
 		template <class other_R, class other_Arg_T>
 		[[nodiscard, gnu::pure]]
-		composition<R(other_Arg_T)> operator*(composition<other_R(other_Arg_T)> &c);
+		composition<R(other_Arg_T)> operator*(const composition<other_R(other_Arg_T)> &c);
 		
 		template <class other_R, class other_Arg_T>
 		[[nodiscard, gnu::pure]]
@@ -106,7 +110,7 @@ class fondue::composition<R(Arg_T)> {
 		
 		template <class other_R>
 		[[nodiscard, gnu::pure]]
-		composition<R> operator*(composition<other_R> &c);
+		composition<R> operator*(const composition<other_R> &c);
 		
 		template <class other_R>
 		[[nodiscard, gnu::pure]]
@@ -128,7 +132,7 @@ class fondue::composition<R(Arg_T)> {
 	
 	private:
 		// Returns whether arg is memoized in memo_state.
-		static inline bool is_memoized(Arg_T &&arg, _unmap &&memo_state);
+		static inline bool is_memoized(const noref_Arg_T &&arg, const _unmap &&memo_state);
 };
 
 /*
@@ -138,7 +142,7 @@ class fondue::composition<R(Arg_T)> {
 */
 
 template <class R>
-inline R& fondue::composition<R>::operator()()
+inline typename fondue::composition<R>::noref_R&& fondue::composition<R>::operator()() const
 {
 	// If func hasn't been called before:
 	if (not is_memoized(std::forward<_unmap>(memoization_state))) {
@@ -148,7 +152,7 @@ inline R& fondue::composition<R>::operator()()
 	
 	// Return the memoized value.
 	// This will never throw.
-	return memoization_state.at(false);
+	return std::move(memoization_state.at(false));
 }
 
 template <class R>
@@ -166,7 +170,7 @@ constexpr fondue::composition<R>::operator fondue::composition<R>::_function() c
 template <class R> template <class Arg_T>
 constexpr fondue::composition<R>::operator fondue::composition<R(Arg_T)>() noexcept
 {
-	std::function<R(Arg_T)> func([this]([[maybe_unused]] Arg_T arg) -> R& {
+	std::function<R(Arg_T)> func([this]([[maybe_unused]] Arg_T arg) -> R {
 		return (*this)();
 	});
 	
@@ -195,7 +199,7 @@ constexpr fondue::composition<R>& fondue::composition<R>::operator=(fondue::comp
 }
 
 template <class R>
-inline bool fondue::composition<R>::is_memoized(fondue::composition<R>::_unmap &&memo_state)
+inline bool fondue::composition<R>::is_memoized(const fondue::composition<R>::_unmap &&memo_state)
 {
 	return memo_state.find(false) != memo_state.end();
 }
@@ -216,13 +220,13 @@ constexpr fondue::composition<R(Arg_T)>& fondue::composition<R(Arg_T)>::operator
 }
 
 template <class R, class Arg_T>
-inline bool fondue::composition<R(Arg_T)>::is_memoized(Arg_T &&arg, _unmap &&memo_state)
+inline bool fondue::composition<R(Arg_T)>::is_memoized(const noref_Arg_T &&arg, const _unmap &&memo_state)
 {
-	return memo_state.find(std::forward<Arg_T>(arg)) != memo_state.end();
+	return memo_state.find(std::forward<const Arg_T>(arg)) != memo_state.end();
 }
 
 template <class R, class Arg_T>
-inline R& fondue::composition<R(Arg_T)>::operator()(Arg_T &arg)
+inline typename fondue::composition<R(Arg_T)>::noref_R&& fondue::composition<R(Arg_T)>::operator()(noref_Arg_T &arg) const
 {
 	// If arg isn't memoized:
 	if (not is_memoized(std::forward<Arg_T>(arg), std::forward<_unmap>(memoization_state))) {
@@ -233,11 +237,11 @@ inline R& fondue::composition<R(Arg_T)>::operator()(Arg_T &arg)
 	// Return the memoized value.
 	// This will never throw, because we already prechecked if
 	// arg wasn't memoized.
-	return memoization_state.at(std::forward<Arg_T>(arg));
+	return std::move(memoization_state.at(std::forward<noref_Arg_T>(arg)));
 }
 
 template <class R, class Arg_T>
-inline R& fondue::composition<R(Arg_T)>::operator()(Arg_T &&arg)
+inline typename fondue::composition<R(Arg_T)>::noref_R&& fondue::composition<R(Arg_T)>::operator()(noref_Arg_T &&arg) const
 {
 	// If arg isn't memoized:
 	if (not is_memoized(std::forward<Arg_T>(arg), std::forward<_unmap>(memoization_state))) {
@@ -248,7 +252,7 @@ inline R& fondue::composition<R(Arg_T)>::operator()(Arg_T &&arg)
 	// Return the memoized value.
 	// This will never throw, because we already prechecked if
 	// arg wasn't memoized.
-	return memoization_state.at(std::forward<Arg_T>(arg));
+	return std::move(memoization_state.at(std::forward<noref_Arg_T>(arg)));
 }
 
 template <class R, class Arg_T>
@@ -258,8 +262,9 @@ inline bool fondue::composition<R(Arg_T)>::valid() const noexcept
 }
 
 template <class R, class Arg_T> template <class other_R, class other_Arg_T>
-fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fondue::composition<other_R(other_Arg_T)> &c)
+fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(const fondue::composition<other_R(other_Arg_T)> &c)
 {
+	typedef typename std::remove_reference<other_Arg_T>::type noref_other_Arg_T;
 // If "if constexpr" is supported (SD-6 feature test)
 #if __cpp_if_constexpr >= 201606
 	if constexpr (std::is_convertible<other_R, Arg_T>::value) {
@@ -267,8 +272,8 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fon
 #else
 	if (std::is_convertible<other_R, Arg_T>::value) {
 #endif
-		std::function<R(other_Arg_T)> newf([this, c = std::move(c)](other_Arg_T arg) mutable -> R& {
-			return (*this)(c(arg));
+		std::function<R(other_Arg_T)> newf([this, c = std::move(c)](noref_other_Arg_T &&arg) -> noref_R&& {
+			return (*this)(c(std::forward<noref_other_Arg_T>(arg)));
 		});
 		
 		return composition<R(other_Arg_T)>(std::move(newf));
@@ -278,6 +283,7 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fon
 template <class R, class Arg_T> template <class other_R, class other_Arg_T>
 fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fondue::composition<other_R(other_Arg_T)> &&c)
 {
+	typedef typename std::remove_reference<other_Arg_T>::type noref_other_Arg_T;
 // If "if constexpr" is supported (SD-6 feature test)
 #if __cpp_if_constexpr >= 201606
 	if constexpr (std::is_convertible<other_R, Arg_T>::value) {
@@ -285,8 +291,8 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fon
 #else
 	if (std::is_convertible<other_R, Arg_T>::value) {
 #endif
-		std::function<R(other_Arg_T)> newf = [this, c = std::move(c)](other_Arg_T arg) mutable -> R& {
-			return (*this)(c(arg));
+		std::function<R(other_Arg_T)> newf = [this, c = std::move(c)](noref_other_Arg_T &&arg) -> noref_R&& {
+			return (*this)(c(std::forward<noref_other_Arg_T>(arg)));
 		};
 		
 		return composition<R(other_Arg_T)>(std::move(newf));
@@ -294,7 +300,7 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fon
 }
 
 template <class R, class Arg_T> template <class other_R>
-fondue::composition<R> fondue::composition<R(Arg_T)>::operator*(fondue::composition<other_R> &c)
+fondue::composition<R> fondue::composition<R(Arg_T)>::operator*(const fondue::composition<other_R> &c)
 {
 // If "if constexpr" is supported (SD-6 feature test)
 #if __cpp_if_constexpr >= 201606
@@ -303,8 +309,8 @@ fondue::composition<R> fondue::composition<R(Arg_T)>::operator*(fondue::composit
 #else
 	if (std::is_convertible<other_R, Arg_T>::value) {
 #endif
-		std::function<R()> newf = [this, c = std::move(c)]() mutable -> R& {
-			return (*this)(c());
+		std::function<R()> newf = [this, c = std::move(c)]() -> noref_R&& {
+			return (*this)(std::forward<noref_Arg_T&&>(c()));
 		};
 		
 		return composition<R>(std::move(newf));
@@ -321,7 +327,7 @@ fondue::composition<R> fondue::composition<R(Arg_T)>::operator*(fondue::composit
 #else
 	if (std::is_convertible<other_R, Arg_T>::value) {
 #endif
-		std::function<R()> newf = [this, c = std::move(c)]() mutable -> R& {
+		std::function<R()> newf = [this, c = std::move(c)]() -> noref_R&& {
 			return (*this)(c());
 		};
 		

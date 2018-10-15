@@ -1,3 +1,5 @@
+// This tests a static const composition for calling.
+
 #include "../../src/composition.hpp"
 #include <functional>
 typedef int arg_t;
@@ -9,7 +11,7 @@ ret_t func(arg_t n)
 	return n + 1;
 }
 
-static composition<ret_t(arg_t)> comp = std::function<ret_t(arg_t)>(func);
+static const composition<ret_t(arg_t)> comp = std::function<ret_t(arg_t)>(func);
 
 int main()
 {
