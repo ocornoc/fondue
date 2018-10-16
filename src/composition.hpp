@@ -28,9 +28,9 @@ namespace fondue {
 template <class R>
 class fondue::composition {
 	typedef typename std::remove_reference<R>::type noref_R;
-	using _function = std::function<R()>;
+	typedef std::function<R()> _function;
 	// 'false' is always used when hashing.
-	using _unmap = std::unordered_map<bool, noref_R>;
+	typedef std::unordered_map<bool, noref_R> _unmap;
 	
 	// The internal function represented.
 	_function func;
@@ -72,8 +72,8 @@ template <class R, class Arg_T>
 class fondue::composition<R(Arg_T)> {
 	typedef typename std::remove_reference<R>::type noref_R;
 	typedef typename std::remove_reference<Arg_T>::type noref_Arg_T;
-	using _function = std::function<R(Arg_T)>;
-	using _unmap = std::unordered_map<noref_Arg_T, noref_R>;
+	typedef std::function<R(Arg_T)> _function;
+	typedef std::unordered_map<noref_Arg_T, noref_R> _unmap;
 	
 	// The internal function represented.
 	_function func;
