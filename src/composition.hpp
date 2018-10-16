@@ -15,13 +15,20 @@ namespace fondue {
 	// This is made for using composition<R>.
 	// It takes no inputs and output a memoized
 	// value.
+	// R is the return class type. Cannot be void.
 	template <class R>
 	class composition;
 	
 	// R is the return class type. Cannot be void.
-	// Arg_T is the argument class type.
+	// Arg_T is the argument class type. Cannot be void
 	template <class R, class Arg_T>
 	class composition<R(Arg_T)>;
+	
+	// We do not support memoization of procedures
+	// (functions with void input and output).
+	// Memoization wouldn't really make sense for
+	// it.
+	// The return type may never be void.
 }
 
 
@@ -92,6 +99,7 @@ class fondue::composition<R(Arg_T)> {
 		
 		// Composes *this ∘ c
 		// other_R must be implicitly convertible to Arg_T
+		// other_R cannot be void.
 		template <class other_R, class other_Arg_T>
 		[[nodiscard, gnu::pure]]
 		composition<R(other_Arg_T)> operator*(const composition<other_R(other_Arg_T)> &c);
@@ -242,10 +250,10 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(con
 {
 // If "if constexpr" is supported (SD-6 feature test)
 #if __cpp_if_constexpr >= 201606
-	if constexpr (std::is_convertible<other_R, Arg_T>::value) {
+	if constexpr (std::is_convertible<other_R, Arg_T>::value and not std::is_same<other_R, void>::value) {
 // Otherwise:
 #else
-	if (std::is_convertible<other_R, Arg_T>::value) {
+	if (std::is_convertible<other_R, Arg_T>::value and not std::is_same<other_R, void>::value) {
 #endif
 		std::function<R(other_Arg_T)> newf([this, c = std::move(c)](other_Arg_T arg) -> R {
 			return (*this)(c(std::forward<other_Arg_T>(arg)));
@@ -260,10 +268,10 @@ fondue::composition<R(other_Arg_T)> fondue::composition<R(Arg_T)>::operator*(fon
 {
 // If "if constexpr" is supported (SD-6 feature test)
 #if __cpp_if_constexpr >= 201606
-	if constexpr (std::is_convertible<other_R, Arg_T>::value) {
+	if constexpr (std::is_convertible<other_R, Arg_T>::value and not std::is_same<other_R, void>::value) {
 // Otherwise:
 #else
-	if (std::is_convertible<other_R, Arg_T>::value) {
+	if (std::is_convertible<other_R, Arg_T>::value and not std::is_same<other_R, void>::value) {
 #endif
 		std::function<R(other_Arg_T)> newf([this, c = std::move(c)](other_Arg_T arg) -> R {
 			return (*this)(c(std::forward<other_Arg_T>(arg)));
