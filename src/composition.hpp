@@ -28,14 +28,14 @@ namespace fondue {
 template <class R>
 class fondue::composition {
 	typedef typename std::remove_reference<R>::type noref_R;
-	typedef std::function<R()> _function;
+	typedef std::function<R()> function;
 	// 'false' is always used when hashing.
-	typedef std::unordered_map<bool, noref_R> _unmap;
+	typedef std::unordered_map<bool, noref_R> unmap;
 	
 	// The internal function represented.
-	_function func;
+	function func;
 	// The memoization table.
-	mutable _unmap memoization_state;
+	mutable unmap memoization_state;
 	
 	template <class other_R, class other_Arg_T>
 	friend class fondue::composition;
@@ -47,15 +47,15 @@ class fondue::composition {
 		// Returns whether ptask is valid && whether func is valid
 		inline bool valid() const noexcept;
 		
-		// Converts the composition into a _function
-		constexpr operator _function() const noexcept;
+		// Converts the composition into a function
+		constexpr operator function() const noexcept;
 
 		// Converts the composition into a composition with an input.
 		template <class Arg_T>
 		constexpr explicit operator composition<R(Arg_T)>() noexcept;
 		
 		// Ctors and dtors
-		constexpr composition(_function &&f) noexcept;
+		constexpr composition(function &&f) noexcept;
 		constexpr composition(const composition<R> &c) noexcept;
 		constexpr composition(composition<R> &&c) noexcept;
 		~composition() = default;
@@ -65,20 +65,20 @@ class fondue::composition {
 		// Returns whether arg is memoized in memo_state.
 		// In this context, it basically means "has func been
 		// called before".
-		static inline bool is_memoized(const _unmap &&memo_state);
+		static inline bool is_memoized(const unmap &&memo_state);
 };
 
 template <class R, class Arg_T>
 class fondue::composition<R(Arg_T)> {
 	typedef typename std::remove_reference<R>::type noref_R;
 	typedef typename std::remove_reference<Arg_T>::type noref_Arg_T;
-	typedef std::function<R(Arg_T)> _function;
-	typedef std::unordered_map<noref_Arg_T, noref_R> _unmap;
+	typedef std::function<R(Arg_T)> function;
+	typedef std::unordered_map<noref_Arg_T, noref_R> unmap;
 	
 	// The internal function represented.
-	_function func;
+	function func;
 	// The memoization table.
-	mutable _unmap memoization_state;
+	mutable unmap memoization_state;
 	
 	template <class other_R>
 	friend class fondue::composition;
@@ -111,11 +111,11 @@ class fondue::composition<R(Arg_T)> {
 		// Returns whether ptask is valid && whether func is valid
 		inline bool valid() const noexcept;
 		
-		// Converts the composition into a _function
-		constexpr operator _function() const noexcept;
+		// Converts the composition into a function
+		constexpr operator function() const noexcept;
 		
 		// Ctors and dtors
-		constexpr composition(_function &&f) noexcept;
+		constexpr composition(function &&f) noexcept;
 		constexpr composition(const composition<R(Arg_T)> &c) noexcept;
 		constexpr composition(composition<R(Arg_T)> &&c) noexcept = default;
 		~composition() = default;
@@ -123,7 +123,7 @@ class fondue::composition<R(Arg_T)> {
 	
 	private:
 		// Returns whether arg is memoized in memo_state.
-		static inline bool is_memoized(Arg_T arg, const _unmap &&memo_state);
+		static inline bool is_memoized(Arg_T arg, const unmap &&memo_state);
 };
 
 /*
@@ -136,7 +136,7 @@ template <class R>
 inline R fondue::composition<R>::operator()() const
 {
 	// If func hasn't been called before:
-	if (not is_memoized(std::forward<_unmap>(memoization_state))) {
+	if (not is_memoized(std::forward<unmap>(memoization_state))) {
 		// Call func and memoize its value.
 		memoization_state.insert({false, std::forward<R>(func())});
 	}
@@ -153,7 +153,7 @@ inline bool fondue::composition<R>::valid() const noexcept
 }
 
 template <class R>
-constexpr fondue::composition<R>::operator fondue::composition<R>::_function() const noexcept
+constexpr fondue::composition<R>::operator fondue::composition<R>::function() const noexcept
 {
 	return func;
 }
@@ -169,7 +169,7 @@ constexpr fondue::composition<R>::operator fondue::composition<R(Arg_T)>() noexc
 }
 
 template <class R>
-constexpr fondue::composition<R>::composition(fondue::composition<R>::_function &&f) noexcept
+constexpr fondue::composition<R>::composition(fondue::composition<R>::function &&f) noexcept
 	: func(std::move(f)) {}
 
 template <class R>
@@ -190,7 +190,7 @@ constexpr fondue::composition<R>& fondue::composition<R>::operator=(fondue::comp
 }
 
 template <class R>
-inline bool fondue::composition<R>::is_memoized(const fondue::composition<R>::_unmap &&memo_state)
+inline bool fondue::composition<R>::is_memoized(const fondue::composition<R>::unmap &&memo_state)
 {
 	return memo_state.find(false) != memo_state.end();
 }
@@ -211,7 +211,7 @@ constexpr fondue::composition<R(Arg_T)>& fondue::composition<R(Arg_T)>::operator
 }
 
 template <class R, class Arg_T>
-inline bool fondue::composition<R(Arg_T)>::is_memoized(Arg_T arg, const _unmap &&memo_state)
+inline bool fondue::composition<R(Arg_T)>::is_memoized(Arg_T arg, const unmap &&memo_state)
 {
 	return memo_state.find(arg) != memo_state.end();
 }
@@ -220,7 +220,7 @@ template <class R, class Arg_T>
 inline R fondue::composition<R(Arg_T)>::operator()(Arg_T arg) const
 {
 	// If arg isn't memoized:
-	if (not is_memoized(std::forward<Arg_T>(arg), std::forward<_unmap>(memoization_state))) {
+	if (not is_memoized(std::forward<Arg_T>(arg), std::forward<unmap>(memoization_state))) {
 		// Call func with arg and memoize its value.
 		memoization_state.insert({std::forward<Arg_T>(arg), std::forward<R>(func(std::forward<Arg_T>(arg)))});
 	}
@@ -310,13 +310,13 @@ fondue::composition<R> fondue::composition<R(Arg_T)>::operator*(fondue::composit
 }
 
 template <class R, class Arg_T>
-constexpr fondue::composition<R(Arg_T)>::operator fondue::composition<R(Arg_T)>::_function() const noexcept
+constexpr fondue::composition<R(Arg_T)>::operator fondue::composition<R(Arg_T)>::function() const noexcept
 {
 	return func;
 }
 
 template <class R, class Arg_T>
-constexpr fondue::composition<R(Arg_T)>::composition(fondue::composition<R(Arg_T)>::_function &&f) noexcept
+constexpr fondue::composition<R(Arg_T)>::composition(fondue::composition<R(Arg_T)>::function &&f) noexcept
 	: func(f) {}
 
 template <class R, class Arg_T>
