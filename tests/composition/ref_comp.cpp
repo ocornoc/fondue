@@ -18,9 +18,5 @@ int main()
 	test_t n = 5;
 	lazy_decrease(n);
 	
-	if (n == 5) {
-		return 1;
-	}
-	
-	
+	return n == 5;
 }
