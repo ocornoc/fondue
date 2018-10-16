@@ -8,6 +8,8 @@
 
 Composition objects do *not* support multiple inputs, though are oblivious to captures. If you need to pass more than one argument, you can use an input of a std::tuple or use captures.
 
+`R` cannot ***ever*** be `void`. You _will_ get horrible error messages if you break that rule!
+
 ## composition\<R(Arg\_T)\>
 
 It can be constructed via another composition object or via an object of type `std::function<R(Arg_T)>`. Composition objects support (obviously) compositing. In order to composite two objects `f` and `g`, the syntax is `f * g`. In order to call a composite object `c` with argument `a`, the syntax is `c(a)`.
