@@ -18,7 +18,7 @@ namespace fondue {
 		// This function takes a suspended object as input and forces it,
 		// AKA calculating the actual result.
 		template <class T>
-		inline T force(fondue::composition<T> &suspended);
+		inline T force(const fondue::composition<T> &suspended);
 		
 		// This function takes constructor arguments similar to an emplace
 		// function might. This will suspend the construction of an object
@@ -40,7 +40,7 @@ constexpr fondue::composition<T> fondue::suspension::delay(T &&obj) noexcept
 }
 
 template <class T>
-inline T fondue::suspension::force(fondue::composition<T> &suspended)
+inline T fondue::suspension::force(const fondue::composition<T> &suspended)
 {
 	return suspended();
 }
